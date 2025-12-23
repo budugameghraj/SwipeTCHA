@@ -48,7 +48,10 @@
 
     const payload = computeBehavioralFeatures();
 
-    console.log("SmartCAPTCHA payload:", payload);
+    if (payload.task_completion_time < 0.8) {
+      resultText.innerText = "Please slide naturally";
+      return;
+    }
 
     try {
       const response = await fetch(API_URL, {
@@ -89,9 +92,10 @@
     }
 
     const totalTime = (positions.at(-1).t - positions[0].t) / 1000;
+    const safeTotalTime = totalTime > 0 ? totalTime : 0.001;
 
     return {
-      avg_mouse_speed: distance / totalTime,
+      avg_mouse_speed: distance / safeTotalTime,
       mouse_path_entropy: directionChanges / positions.length,
       click_delay: (positions[0].t - pageLoadTime) / 1000,
       task_completion_time: totalTime,
