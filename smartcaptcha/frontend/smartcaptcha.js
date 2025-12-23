@@ -2,12 +2,8 @@
   const root = document.getElementById('smartcaptcha-root');
   const statusEl = document.getElementById('smartcaptcha-status');
   const resetBtn = document.getElementById('smartcaptcha-reset');
-  const validateBtn = document.getElementById('smartcaptcha-validate');
-  const exportHumanBtn = document.getElementById('smartcaptcha-export-human');
-  const exportBotBtn = document.getElementById('smartcaptcha-export-bot');
 
   const VERIFY_ENDPOINT = 'https://captcha-1-eqpj.onrender.com/verify';
-  const VALIDATE_ENDPOINT = 'https://captcha-1-eqpj.onrender.com/validate';
 
   const FEATURE_COLUMNS = [
     'avg_mouse_speed',
@@ -79,47 +75,13 @@
     return safeDivide(hBits, max);
   }
 
-  function setExportEnabled(enabled) {
-    if (exportHumanBtn) exportHumanBtn.disabled = !enabled;
-    if (exportBotBtn) exportBotBtn.disabled = !enabled;
-  }
-
-  function toCsvRow(features, label) {
-    const values = FEATURE_COLUMNS.map((k) => {
-      const v = features && Object.prototype.hasOwnProperty.call(features, k) ? features[k] : 0;
-      return Number.isFinite(v) ? String(v) : '0';
-    });
-    values.push(String(label));
-    return values.join(',');
-  }
-
-  function downloadTextFile(filename, content) {
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  function exportCurrentFeatures(label) {
-    const features = window.__smartcaptcha_features;
-    if (!features) {
-      setStatus('No features available to export. Complete the slider first.');
-      setExportEnabled(false);
-      return;
+  function buildVerifyPayload(features) {
+    const payload = {};
+    for (const key of FEATURE_COLUMNS) {
+      const v = features && Object.prototype.hasOwnProperty.call(features, key) ? features[key] : 0;
+      payload[key] = Number.isFinite(v) ? v : 0;
     }
-
-    const header = `${FEATURE_COLUMNS.join(',')},label`;
-    const row = toCsvRow(features, label);
-    const csv = `${header}\n${row}\n`;
-    const ts = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = `smartcaptcha_row_${label === 1 ? 'human' : 'bot'}_${ts}.csv`;
-    downloadTextFile(filename, csv);
-    setStatus('Exported one labeled CSV row file. Append it into dataset/behavior_data.csv.');
+    return payload;
   }
 
   function computeFeatures(session) {
@@ -257,30 +219,16 @@
   }
 
   async function verifyWithBackend(features) {
+    const payload = buildVerifyPayload(features);
     const res = await fetch(VERIFY_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(features),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
       const text = await res.text();
       throw new Error(`Verify failed (${res.status}): ${text}`);
-    }
-
-    return res.json();
-  }
-
-  async function validateTokenWithBackend(token) {
-    const res = await fetch(VALIDATE_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Validate failed (${res.status}): ${text}`);
     }
 
     return res.json();
@@ -454,33 +402,21 @@
         setStatus('Verifying...');
         verifyWithBackend(features)
           .then((result) => {
-            window.__smartcaptcha_verify_result = result;
-            const confidencePct = Math.round((result.confidence ?? 0) * 100);
             if (result.status === 'human') {
-              setStatus(`Verified: HUMAN (${confidencePct}%). Token issued.`);
-              if (validateBtn) validateBtn.disabled = !result.token;
-            } else if (result.status === 'suspicious') {
-              setStatus(`Result: SUSPICIOUS (${confidencePct}%).`);
-              if (validateBtn) validateBtn.disabled = true;
+              setStatus('Verified: Human');
+              window.location.assign('https://example.com');
             } else {
-              setStatus(`Result: BOT (${confidencePct}%).`);
-              if (validateBtn) validateBtn.disabled = true;
+              setStatus('You are not a human');
             }
-
-            setExportEnabled(true);
           })
           .catch((err) => {
             setStatus(`Verification error: ${err.message}`);
-            if (validateBtn) validateBtn.disabled = true;
-            setExportEnabled(true);
           });
       } else {
         animateBack();
         const features = computeFeatures(session);
         window.__smartcaptcha_features = features;
-        setStatus(`Try again. Captured ${session.events.length} events.`);
-
-        setExportEnabled(!!features);
+        setStatus('Try again.');
       }
     }
 
@@ -533,49 +469,10 @@
     resetBtn.addEventListener('click', () => {
       window.__smartcaptcha_session = undefined;
       window.__smartcaptcha_features = undefined;
-      window.__smartcaptcha_verify_result = undefined;
       setStatus('');
-      if (validateBtn) validateBtn.disabled = true;
-      setExportEnabled(false);
       render();
     });
   }
 
-  if (exportHumanBtn) {
-    exportHumanBtn.addEventListener('click', () => exportCurrentFeatures(1));
-  }
-
-  if (exportBotBtn) {
-    exportBotBtn.addEventListener('click', () => exportCurrentFeatures(0));
-  }
-
-  if (validateBtn) {
-    validateBtn.addEventListener('click', () => {
-      const result = window.__smartcaptcha_verify_result;
-      const token = result && result.token;
-      if (!token) {
-        setStatus('No token available to validate. Complete verification first.');
-        validateBtn.disabled = true;
-        return;
-      }
-
-      setStatus('Validating token...');
-      validateTokenWithBackend(token)
-        .then((resp) => {
-          if (resp && resp.valid === true) {
-            setStatus('Token validation: VALID (consumed).');
-          } else {
-            setStatus('Token validation: INVALID (expired or already used).');
-          }
-          validateBtn.disabled = true;
-        })
-        .catch((err) => {
-          setStatus(`Token validation error: ${err.message}`);
-          validateBtn.disabled = true;
-        });
-    });
-  }
-
   render();
-  setExportEnabled(false);
 })();
