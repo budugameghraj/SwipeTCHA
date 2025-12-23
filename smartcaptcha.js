@@ -6,8 +6,8 @@
   const exportHumanBtn = document.getElementById('smartcaptcha-export-human');
   const exportBotBtn = document.getElementById('smartcaptcha-export-bot');
 
-  const VERIFY_ENDPOINT = 'http://127.0.0.1:8000/verify';
-  const VALIDATE_ENDPOINT = 'http://127.0.0.1:8000/validate';
+  const VERIFY_ENDPOINT = 'https://captcha-1-eqpj.onrender.com/verify';
+  const VALIDATE_ENDPOINT = 'https://captcha-1-eqpj.onrender.com/validate';
 
   const FEATURE_COLUMNS = [
     'avg_mouse_speed',
