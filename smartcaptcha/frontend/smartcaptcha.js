@@ -350,7 +350,7 @@
         setStatus('Verifying...');
         verifyWithBackend(features)
           .then((result) => {
-            if (result && (result.decision === 'human' || result.decision === 'suspicious') && result.is_human === true) {
+            if (result && (result.decision === 'human' || result.decision === 'suspicious')) {
               setStatus('Verified: Human');
               window.location.assign('https://example.com');
             } else {

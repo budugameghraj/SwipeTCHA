@@ -53,9 +53,9 @@ class VerifyRequest(BaseModel):
 
 
 class VerifyResponse(BaseModel):
-    is_human: bool
     decision: str
     confidence: float
+    human_like: bool
 
 
 class ValidateTokenRequest(BaseModel):
@@ -140,20 +140,33 @@ def verify(payload: VerifyRequest):
     if not isfinite(prob_human):
         raise HTTPException(status_code=500, detail="Model returned non-finite confidence")
 
-    if prob_human >= 0.60:
+    human_like = (
+        features.get("avg_mouse_speed", 0.0) > 0.2
+        and features.get("mouse_path_entropy", 0.0) > 0.15
+        and features.get("click_delay", 0.0) > 0.3
+        and features.get("task_completion_time", 0.0) > 1.0
+        and features.get("idle_time", 0.0) >= 0.0
+    )
+
+    if human_like:
         decision = "human"
-        is_human = True
+    elif prob_human >= 0.60:
+        decision = "human"
     elif prob_human >= 0.40:
         decision = "suspicious"
-        is_human = True
     else:
         decision = "bot"
-        is_human = False
 
     now_s = time.time()
     cleanup_tokens(now_s)
 
-    return VerifyResponse(is_human=is_human, decision=decision, confidence=float(prob_human))
+    logger.info("/verify decision: %s", {
+        "confidence": float(prob_human),
+        "human_like": bool(human_like),
+        "decision": decision,
+    })
+
+    return VerifyResponse(decision=decision, confidence=float(prob_human), human_like=bool(human_like))
 
 
 @app.post("/validate", response_model=ValidateTokenResponse)
