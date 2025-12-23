@@ -349,10 +349,9 @@
         verifyWithBackend(features)
           .then((result) => {
             if (result && result.decision === 'human') {
-              setStatus('Verified: Human');
-              window.location.assign('https://example.com');
+              window.location.href = '/success.html';
             } else {
-              setStatus('You are not a human');
+              setStatus('Verification failed. Try again.');
             }
           })
           .catch((err) => {

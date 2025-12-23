@@ -20,23 +20,45 @@ if os.path.exists(MODEL_PATH):
 else:
     model = None
     MODEL_LOADED = False
-    print("WARNING: captcha_model.pkl not found. Running in fallback mode.")
+    print("⚠️ ML model missing — running in safe fallback")
+
 
 @app.get("/")
 def root():
     return {"status": "backend alive"}
 
+
 @app.post("/verify")
 def verify(payload: dict):
-    # If model is missing, allow human (fallback)
+
+    # ---------------------------
+    # HARD BOT RULE (FIRST GATE)
+    # ---------------------------
+    if (
+        payload["avg_mouse_speed"] > 2.0 and
+        payload["mouse_path_entropy"] < 0.08 and
+        payload["click_delay"] < 0.2 and
+        payload["task_completion_time"] < 1.0
+    ):
+        return {
+            "decision": "bot",
+            "confidence": 0.0,
+            "mode": "rule-blocked"
+        }
+
+    # ---------------------------
+    # SAFE FALLBACK (NO MODEL)
+    # ---------------------------
     if not MODEL_LOADED:
         return {
             "decision": "human",
             "confidence": 0.5,
-            "mode": "fallback-no-model"
+            "mode": "fallback"
         }
 
-    # Extract features in correct order
+    # ---------------------------
+    # ML PREDICTION
+    # ---------------------------
     features = [[
         payload["avg_mouse_speed"],
         payload["mouse_path_entropy"],
@@ -45,22 +67,12 @@ def verify(payload: dict):
         payload["idle_time"]
     ]]
 
-    # ML confidence (probability of human)
     confidence = float(model.predict_proba(features)[0][1])
 
-    # Human-like sanity checks (IMPORTANT)
-    human_like = (
-        payload["avg_mouse_speed"] > 0.25 and
-        payload["mouse_path_entropy"] > 0.15 and
-        payload["click_delay"] > 0.4 and
-        payload["task_completion_time"] > 1.2
-    )
-
-    # Final decision (SAFE)
-    if human_like or confidence >= 0.40:
-        decision = "human"
-    else:
-        decision = "bot"
+    # ---------------------------
+    # FINAL DECISION
+    # ---------------------------
+    decision = "human" if confidence >= 0.65 else "bot"
 
     return {
         "decision": decision,
