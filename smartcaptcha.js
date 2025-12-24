@@ -220,7 +220,7 @@
 
   async function verifyWithBackend(features) {
     const payload = buildVerifyPayload(features);
-    const res = await fetch("https://captcha-2-fix9.onrender.com/verify", {
+    const res = await fetch(VERIFY_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -402,15 +402,23 @@
         setStatus('Verifying...');
         verifyWithBackend(features)
           .then((result) => {
-            if (result.status === 'human') {
+            const decision = (result && (result.decision ?? result.status)) || '';
+            if (decision === 'human') {
               setStatus('Verified: Human');
-              window.location.assign('https://example.com');
-            } else {
-              setStatus('You are not a human');
+              return;
             }
+
+            setStatus('Verification failed. Try again.');
+            window.setTimeout(() => {
+              render();
+              setStatus('Try again.');
+            }, 250);
           })
           .catch((err) => {
             setStatus(`Verification error: ${err.message}`);
+            window.setTimeout(() => {
+              render();
+            }, 250);
           });
       } else {
         animateBack();
