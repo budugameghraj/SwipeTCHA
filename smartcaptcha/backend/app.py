@@ -34,12 +34,11 @@ def verify(payload: dict):
     # ---------------------------
     # HARD BOT RULE (FIRST GATE)
     # ---------------------------
-    # HARD BOT RULE (FINAL — SLIDER SAFE)
     if (
-        payload["avg_mouse_speed"] > 3.0 and
-        payload["mouse_path_entropy"] < 0.04 and
-        payload["click_delay"] < 0.1 and
-        payload["task_completion_time"] < 0.6
+        payload["avg_mouse_speed"] > 2.0 and
+        payload["mouse_path_entropy"] < 0.08 and
+        payload["click_delay"] < 0.2 and
+        payload["task_completion_time"] < 1.0
     ):
         return {
             "decision": "bot",
@@ -69,10 +68,14 @@ def verify(payload: dict):
     ]]
 
     confidence = float(model.predict_proba(features)[0][1])
+
+    # ---------------------------
+    # FINAL DECISION
+    # ---------------------------
     decision = "human" if confidence >= 0.65 else "bot"
 
     return {
         "decision": decision,
-        "confidence": confidence,
+        "confidence": round(confidence, 3),
         "mode": "ml-enabled"
     }
