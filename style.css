@@ -159,3 +159,110 @@
    min-height: 22px;
    color: var(--muted);
  }
+
+ .sc-footer {
+   max-width: 840px;
+   margin: 0 auto;
+   padding: 0 20px 26px;
+   display: flex;
+   justify-content: flex-end;
+ }
+
+ .sc-footer-link {
+   color: var(--muted);
+   text-decoration: none;
+   font-size: 13px;
+   padding: 8px 10px;
+   border-radius: 10px;
+   border: 1px solid rgba(232, 238, 252, 0.12);
+   background: rgba(232, 238, 252, 0.04);
+ }
+
+ .sc-footer-link:hover {
+   background: rgba(232, 238, 252, 0.08);
+ }
+
+ .sc-footer-link:focus-visible {
+   outline: 2px solid rgba(73, 145, 255, 0.9);
+   outline-offset: 3px;
+ }
+
+ .sc-modal {
+   position: fixed;
+   inset: 0;
+   z-index: 9999;
+ }
+
+ .sc-modal__backdrop {
+   position: absolute;
+   inset: 0;
+   background: rgba(0, 0, 0, 0.55);
+ }
+
+ .sc-modal__dialog {
+   position: relative;
+   width: min(520px, calc(100vw - 32px));
+   margin: 10vh auto;
+   background: rgba(17, 27, 46, 0.96);
+   border: 1px solid rgba(232, 238, 252, 0.14);
+   border-radius: 14px;
+   padding: 18px;
+   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.45);
+ }
+
+ .sc-modal__close {
+   appearance: none;
+   border: 0;
+   background: transparent;
+   color: var(--muted);
+   font-size: 22px;
+   line-height: 1;
+   position: absolute;
+   right: 12px;
+   top: 10px;
+   cursor: pointer;
+ }
+
+ .sc-modal__title {
+   margin: 0 0 12px;
+   font-size: 16px;
+   color: var(--text);
+ }
+
+ .sc-modal__form {
+   display: grid;
+   gap: 10px;
+ }
+
+ .sc-modal__label {
+   display: grid;
+   gap: 6px;
+   color: var(--muted);
+   font-size: 13px;
+ }
+
+ .sc-modal__input,
+ .sc-modal__textarea {
+   width: 100%;
+   border-radius: 10px;
+   border: 1px solid rgba(232, 238, 252, 0.14);
+   background: rgba(232, 238, 252, 0.06);
+   color: var(--text);
+   padding: 10px 10px;
+   font-size: 14px;
+ }
+
+ .sc-modal__textarea {
+   resize: vertical;
+ }
+
+ .sc-modal__status {
+   min-height: 18px;
+   color: var(--muted);
+   font-size: 13px;
+ }
+
+ .sc-modal__actions {
+   display: flex;
+   justify-content: flex-end;
+ }

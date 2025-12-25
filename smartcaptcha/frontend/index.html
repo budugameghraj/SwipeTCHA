@@ -19,6 +19,34 @@
     </section>
   </main>
 
+  <footer class="sc-footer">
+    <a id="smartcaptcha-feedback" class="sc-footer-link" href="#">Feedback</a>
+  </footer>
+
+  <div id="sc-feedback-modal" class="sc-modal" hidden>
+    <div class="sc-modal__backdrop" data-sc-close="true"></div>
+    <div class="sc-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="sc-feedback-title">
+      <button type="button" class="sc-modal__close" data-sc-close="true" aria-label="Close">×</button>
+      <h2 id="sc-feedback-title" class="sc-modal__title">Feedback</h2>
+      <form id="sc-feedback-form" class="sc-modal__form">
+        <label class="sc-modal__label">
+          <span>Email *</span>
+          <input id="sc-feedback-email" class="sc-modal__input" type="email" required autocomplete="email" />
+        </label>
+        <label class="sc-modal__label">
+          <span>Message</span>
+          <textarea id="sc-feedback-message" class="sc-modal__textarea" rows="4"></textarea>
+        </label>
+        <div id="sc-feedback-status" class="sc-modal__status" aria-live="polite"></div>
+        <div class="sc-modal__actions">
+          <button id="sc-feedback-submit" class="btn" type="submit">Send</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="/smartcaptcha.js?v=2"></script>
+  <script src="/firebaseFeedback.js?v=2"></script>
+  <script src="/feedbackModal.js?v=2"></script>
 </body>
 </html>
