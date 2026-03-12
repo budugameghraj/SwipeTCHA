@@ -1,2 +1,1 @@
-# SwipeTCHA
-A gesture-based CAPTCHA alternative focused on improving usability and security. The project explores human interaction patterns to create smarter verification systems.
+SwipeTCHA is a behavior based and user-friendly security system designed to prevent bots while keeping human verification fast and smooth. It adapts in real time using smart logic that involves machine learning (supervised). It also improves security along with accessibility and user experience compared to the other traditional CAPTCHAs that test users based on what they solve (puzzles) rather than the behavior.
